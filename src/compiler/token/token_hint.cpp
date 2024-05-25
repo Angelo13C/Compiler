@@ -62,23 +62,18 @@ std::optional<Token> ParsingToken::intoResultingToken()
         }
         case TokenHint::Alphabetic:
         {
-            auto keywordToken = tokenValueToKeywordToken.find(currentTokenValue);
-            // If it's a keyword
-            if(keywordToken != tokenValueToKeywordToken.end())
+            if(!std::isalnum(lastCharacter) && lastCharacter != '!')
             {
-                token = keywordToken->second;
+                auto stringWithoutLastCharacter = currentTokenValue.substr(0, currentTokenValue.length() - 1);
+                auto keywordToken = tokenValueToKeywordToken.find(stringWithoutLastCharacter);
+                // If it's a keyword
+                if(keywordToken != tokenValueToKeywordToken.end())
+                    token = keywordToken->second;
+                else
+                    token = Token { .type = TokenType::Ident, .value = stringWithoutLastCharacter };
 
                 *this = ParsingToken();
-            }
-            else
-            {
-                if(!std::isalnum(lastCharacter))
-                {
-                    token = Token { .type = TokenType::Ident, .value = currentTokenValue.substr(0, currentTokenValue.length() - 1) };
-
-                    *this = ParsingToken();
-                    addCharacter(lastCharacter);
-                }
+                addCharacter(lastCharacter);
             }
                 
             break;
