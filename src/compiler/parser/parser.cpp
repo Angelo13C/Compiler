@@ -229,8 +229,6 @@ std::optional<StatementNode*> Parser::parseStatement(std::queue<Token> &tokens, 
                             )
                         );
 
-                        std::cout << "   \n\n\n\nMACROOOOOOOOOOO\n" << *macroCall << "\n\n";
-
                         //delete functionCall.value();
                         return macroCall;
                     }
