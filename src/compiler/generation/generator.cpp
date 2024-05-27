@@ -71,7 +71,6 @@ void Generator::generateStatement(const StatementNode* statement, GenerateData &
             if(currentFunctionDefinition.has_value())
             {
                 auto variablesToRemove = 8 * (generation.stackSize - currentFunctionDefinition.value().scope->startStackPtr - RETURN_ADDRESS_SIZE);
-                std::cout << "Variable to remove: " << variablesToRemove << std::endl;
                 generation.output << TAB << "mov rcx, QWORD [rsp + " << (variablesToRemove - currentFunctionDefinition.value().parametersCount * 8) << "]" << NEW_LINE;
                 if(variablesToRemove != 0)
                     generation.output << TAB << "add rsp, " << (variablesToRemove - 8) << NEW_LINE;
