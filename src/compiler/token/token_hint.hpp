@@ -47,7 +47,7 @@ struct ParsingToken
      * @brief Converts the accumulated characters into a resulting Token based on the hint.
      * @return An optional Token, or std::nullopt if no valid token can be formed.
      */
-    std::optional<Token> intoResultingToken();
+    std::optional<Token> intoResultingToken(Meta& metadata);
 public:
     TokenHint hint;
     std::string currentTokenValue;
@@ -65,4 +65,5 @@ const std::unordered_map<std::string, Token> tokenValueToKeywordToken = {
     { "while", Token { .type = TokenType::KeywordWhile }},
     { "fn", Token { .type = TokenType::KeywordFn }},
     { "asm!", Token { .type = TokenType::KeywordAsm, .value = "asm!" }},
+    { "include!", Token { .type = TokenType::KeywordAsm, .value = "include!" }},
 };

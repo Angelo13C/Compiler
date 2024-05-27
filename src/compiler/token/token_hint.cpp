@@ -20,14 +20,14 @@ void ParsingToken::addCharacter(char character)
         else if(character == '=' || character == ';' || character == '>' || character == '<' || 
                 character == '+' || character == '-' || character == '*' || character == '/' || 
                 character == '(' || character == ')' || character == '{' || character == '}' ||
-                character == ',')
+                character == ',' || character == '!')
             hint = TokenHint::Sign;
         else if(std::isalpha(character))
             hint = TokenHint::Alphabetic;
     }
 }
 
-std::optional<Token> ParsingToken::intoResultingToken()
+std::optional<Token> ParsingToken::intoResultingToken(Meta& metadata)
 {
     if(currentTokenValue.empty())
         return std::nullopt;
@@ -46,7 +46,7 @@ std::optional<Token> ParsingToken::intoResultingToken()
                 *this = ParsingToken();
 
                 addCharacter(lastCharacter);
-                return intoResultingToken();
+                return intoResultingToken(metadata);
             }
             break;
         }
@@ -54,7 +54,7 @@ std::optional<Token> ParsingToken::intoResultingToken()
         {
             if(lastCharacter == '\n')
             {
-                token = Token { .type = TokenType::Comment, .value = currentTokenValue.substr(0, currentTokenValue.length() - 1) };
+                token = Token { .type = TokenType::Comment, .value = currentTokenValue.substr(0, currentTokenValue.length() - 1), .metadata = metadata };
 
                 *this = ParsingToken();
             }
@@ -62,15 +62,18 @@ std::optional<Token> ParsingToken::intoResultingToken()
         }
         case TokenHint::Alphabetic:
         {
-            if(!std::isalnum(lastCharacter) && lastCharacter != '!')
+            if(!std::isalnum(lastCharacter) && lastCharacter != '!' && lastCharacter != '_')
             {
                 auto stringWithoutLastCharacter = currentTokenValue.substr(0, currentTokenValue.length() - 1);
                 auto keywordToken = tokenValueToKeywordToken.find(stringWithoutLastCharacter);
                 // If it's a keyword
                 if(keywordToken != tokenValueToKeywordToken.end())
+                {
                     token = keywordToken->second;
+                    token.value().metadata = metadata;
+                }
                 else
-                    token = Token { .type = TokenType::Ident, .value = stringWithoutLastCharacter };
+                    token = Token { .type = TokenType::Ident, .value = stringWithoutLastCharacter, .metadata = metadata };
 
                 *this = ParsingToken();
                 addCharacter(lastCharacter);
@@ -82,43 +85,43 @@ std::optional<Token> ParsingToken::intoResultingToken()
         {
             if(lastCharacter == ';')
             {
-                token = Token { .type = TokenType::Semicolon };
+                token = Token { .type = TokenType::Semicolon, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == ',')
             {
-                token = Token { .type = TokenType::Comma };
+                token = Token { .type = TokenType::Comma, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == '>')
             {
-                token = Token { .type = TokenType::GreaterThanSign };
+                token = Token { .type = TokenType::GreaterThanSign, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == '<')
             {
-                token = Token { .type = TokenType::LessThanSign };
+                token = Token { .type = TokenType::LessThanSign, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == '+')
             {
-                token = Token { .type = TokenType::PlusSign };
+                token = Token { .type = TokenType::PlusSign, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == '-')
             {
-                token = Token { .type = TokenType::MinusSign };
+                token = Token { .type = TokenType::MinusSign, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == '*')
             {
-                token = Token { .type = TokenType::MultiplicationSign };
+                token = Token { .type = TokenType::MultiplicationSign, .metadata = metadata };
 
                 *this = ParsingToken();
             }
@@ -126,7 +129,7 @@ std::optional<Token> ParsingToken::intoResultingToken()
             {
                 if(lastCharacter != '/')
                 {
-                    token = Token { .type = TokenType::DivisionSign };
+                    token = Token { .type = TokenType::DivisionSign, .metadata = metadata };
 
                     *this = ParsingToken();
                     addCharacter(lastCharacter);
@@ -138,38 +141,45 @@ std::optional<Token> ParsingToken::intoResultingToken()
             }
             else if(lastCharacter == '(')
             {
-                token = Token { .type = TokenType::OpenRoundBracket };
+                token = Token { .type = TokenType::OpenRoundBracket, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == ')')
             {
-                token = Token { .type = TokenType::CloseRoundBracket };
+                token = Token { .type = TokenType::CloseRoundBracket, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == '{')
             {
-                token = Token { .type = TokenType::OpenCurlyBracket };
+                token = Token { .type = TokenType::OpenCurlyBracket, .metadata = metadata };
 
                 *this = ParsingToken();
             }
             else if(lastCharacter == '}')
             {
-                token = Token { .type = TokenType::CloseCurlyBracket };
+                token = Token { .type = TokenType::CloseCurlyBracket, .metadata = metadata };
 
                 *this = ParsingToken();
             }
+            else if(currentTokenValue.length() == 3 && currentTokenValue[0] == '!' && currentTokenValue[1] == '=' && lastCharacter != '=')
+            {
+                token = Token { .type = TokenType::NotEqualSign, .metadata = metadata };
+
+                *this = ParsingToken();
+                addCharacter(lastCharacter);
+            }
             else if(currentTokenValue.length() == 2 && currentTokenValue[0] == '=' && lastCharacter != '=')
             {
-                token = Token { .type = TokenType::EqualSign };
+                token = Token { .type = TokenType::EqualSign, .metadata = metadata };
 
                 *this = ParsingToken();
                 addCharacter(lastCharacter);
             }
             else if(currentTokenValue.length() == 3 && currentTokenValue[0] == '=' && currentTokenValue[1] == '=' && lastCharacter != '=')
             {
-                token = Token { .type = TokenType::DoubleEqualSign };
+                token = Token { .type = TokenType::DoubleEqualSign, .metadata = metadata };
 
                 *this = ParsingToken();
                 addCharacter(lastCharacter);
@@ -181,7 +191,7 @@ std::optional<Token> ParsingToken::intoResultingToken()
         {
             if(lastCharacter == '\"' && currentTokenValue.length() > 1)
             {
-                token = Token { .type = TokenType::LiteralString, .value = currentTokenValue.substr(1, currentTokenValue.length() - 2) };
+                token = Token { .type = TokenType::LiteralString, .value = currentTokenValue.substr(1, currentTokenValue.length() - 2), .metadata = metadata };
 
                 *this = ParsingToken();
             }
@@ -192,7 +202,7 @@ std::optional<Token> ParsingToken::intoResultingToken()
         {
             if(std::isspace(lastCharacter) || lastCharacter == ';' || lastCharacter == ')' || lastCharacter == ',')
             {
-                token = Token { .type = TokenType::LiteralNumber, .value = currentTokenValue.substr(0, currentTokenValue.length() - 1) };
+                token = Token { .type = TokenType::LiteralNumber, .value = currentTokenValue.substr(0, currentTokenValue.length() - 1), .metadata = metadata };
 
                 *this = ParsingToken();
                 addCharacter(lastCharacter);

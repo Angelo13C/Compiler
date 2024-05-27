@@ -3,6 +3,8 @@
 #include <optional>
 #include <string>
 
+#include "meta.hpp"
+
 /**
  * @enum TokenType
  * @brief An enumeration representing different types of tokens.
@@ -19,6 +21,7 @@ enum class TokenType
     KeywordWhile,
     KeywordFn,
     KeywordAsm,
+    KeywordInclude,
 
     Comment,
 
@@ -33,6 +36,7 @@ enum class TokenType
 
     EqualSign,
     DoubleEqualSign,
+    NotEqualSign,
     GreaterThanSign,
     LessThanSign,
     
@@ -59,6 +63,8 @@ struct Token
     TokenType type;
     std::optional<std::string> value;
 
+    Meta metadata;
+
     /**
      * @brief Formats the token as a string for debugging purposes.
      * @return A formatted string representation of the token.
@@ -81,6 +87,8 @@ struct Token
             return "KeywordFn";
         case TokenType::KeywordAsm:
             return "asm!";
+        case TokenType::KeywordInclude:
+            return "include!";
 
         case TokenType::Ident:
             return value.value();
@@ -103,6 +111,8 @@ struct Token
             return "=";
         case TokenType::DoubleEqualSign:
             return "==";
+        case TokenType::NotEqualSign:
+            return "!=";
             
         case TokenType::GreaterThanSign:
             return ">";
